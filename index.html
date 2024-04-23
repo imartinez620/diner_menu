@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.5/lodash.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+<script>
+    let menu = '';
+    let seleccion = [];
+    let suplementoCena = 1;
+
+    const carta =[
+        {time: 'desayunar', platoPrincipal : [
+                                {food:'cacao', price: 1.2}, 
+                                {food:'chocolate', price: 1.5},
+                                {food:'café', price: 1}
+                            ],
+                            complementos : [
+                                {food:'galletas', price: 2}, 
+                                {food:'tostada', price: 2.25},
+                                {food:'bollo', price:2.50}
+                            ],
+                            bebidas : [
+                                {food:'leche', price: 1.2}, 
+                                {food:'soja', price: 1.75},
+                                {food:'zumo', price: 2.2}
+                            ]
+        },
+
+        {time: 'almorzar', platoPrincipal : [
+                                {food:'lentejas', price: 4}, 
+                                {food:'alubias', price: 4.25},
+                                {food:'garbanzos', price:4.50},
+                                {food:'marmitako', price:3.5}
+                            ],       
+                            complementos : [
+                                {food:'patatas', price: 2}, 
+                                {food:'ensalada', price: 2.25},
+                                {food:'arroz', price:2.50},
+                                {food:'caldo', price:3}
+                            ],
+                            bebidas : [
+                                {food:'agua', price: 1.2}, 
+                                {food:'vino', price: 1.75},
+                                {food:'gaseosa', price: 2.2},
+                            ]
+        }
+    ]; 
+
+    const comentarios = [
+        'Buena elección.',
+        'Estupendo.',
+        'Excelente.',
+        'Lo apunto.',
+        'Perfecto.',
+        'Marchando!'
+    ];
+
+    //Solicita confirmación del servicio
+    menu = prompt('Bienvenid@ al Bottega Menu\n¿Quiere desayunar, almorzar o cenar?');
+    menu = menu.toLowerCase();
+    while(menu !== 'desayunar' && menu !== 'almorzar' && menu !== 'cenar'){
+        menu = prompt('No le he entendido bien, repita su elección.\n ¿Quiere desayunar, almorzar o cenar?');
+        menu = menu.toLowerCase();
+    }
+
+    //Devuelve el menú correspondiente al servicio y aplica el plus al servicio si es de cena
+    const servicio = _.filter(carta, function(aux) {
+        if(menu === 'cenar'){
+            menu = 'almorzar';
+            suplementoCena = 1.75;
+        }
+        return(aux.time === menu);   
+    });
+    
+    //Devuelve una cadena con los platos y precios para mostrar 
+    let platos = function(listaAlimentos){
+            return _.reduce(listaAlimentos, function(content, plato) {
+                return `\n${plato.food} -> ${(plato.price * suplementoCena).toFixed(2)}€`.concat(content); 
+            },'\n');
+    }
+    
+    //Va añadiendo el precio a la cuenta y también lo devuelve para informar.
+    let precios = function(vuelco, respuesta){
+        let plato = vuelco.find(item => item.food === respuesta);
+        if (plato) {
+            seleccion.push (plato.price * suplementoCena);
+            return (plato.price * suplementoCena);
+        } else {
+            respuesta = prompt(`Perdone, le repito las opciones.\n` + platos(vuelco) + '\nElija una:');
+            precios(vuelco, respuesta);
+        }
+    }
+
+    //Solicita la cadena con los platos y precios y la muestra para su selección
+    //Realiza un comentario junto con la muestra de la información del precio.
+    let seleccionarPlato = function(vuelco, frase) {
+        let respuesta = prompt(`${frase}\n` + platos(vuelco) + '\nElija una opción:');
+        let confirmacionPrecio = precios(vuelco, respuesta);
+        
+        if (respuesta === 'cacao' || respuesta === 'café' || respuesta === 'chocolate' ||
+            respuesta === 'lentejas' || respuesta === 'alubias' || respuesta === 'garbanzos'){
+            let suplemento = prompt(`¿Quiere un extra de ${respuesta}? (s/n)`);
+            suplemento = suplemento.toLowerCase();
+
+            while(suplemento !== 's' && suplemento !== 'n'){
+                suplemento = prompt('No le he entendido bien.');
+                suplemento = suplemento.toLowerCase();
+            }
+
+            if(suplemento === 's'){
+                confirmacionPrecio = confirmacionPrecio + 1;
+                seleccion.push(1);
+            }
+        }
+
+        let index = _.random(0, comentarios.length-1);
+        alert(`${comentarios[index]}\n\nSu precio es de ${confirmacionPrecio.toFixed(2)}€`)
+    };
+
+
+    //let extra = prompt(`${frase}\n` + platos(vuelco) + '\nElija una opción:');
+
+
+    //Main
+    seleccionarPlato(servicio[0].platoPrincipal, 'De plato principal tenemos:');
+    seleccionarPlato(servicio[0].complementos, 'Para acompañar hay:');
+    seleccionarPlato(servicio[0].bebidas, 'Finamelmente puede añadir:');
+
+    const sum = _.reduce(seleccion, function(total, dato) {
+        return total + dato ;
+    },0)
+
+    alert(`El total de su cuenta es ${sum.toFixed(2)}€`)
+</script>
+</html>
