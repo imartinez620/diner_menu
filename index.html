@@ -12,7 +12,9 @@
 <script>
     let menu = '';
     let seleccion = [];
+    let seleccionAlimentos = [];
     let suplementoCena = 1;
+    let respuesta = '';
 
     const carta =[
         {time: 'desayunar', platoPrincipal : [
@@ -65,7 +67,7 @@
     menu = prompt('Bienvenid@ al Bottega Menu\n¿Quiere desayunar, almorzar o cenar?');
     menu = menu.toLowerCase();
     while(menu !== 'desayunar' && menu !== 'almorzar' && menu !== 'cenar'){
-        menu = prompt('No le he entendido bien, repita su elección.\n ¿Quiere desayunar, almorzar o cenar?');
+        menu = prompt(`No le he entendido bien con lo de "${menu}". Repita su elección.\n ¿Quiere desayunar, almorzar o cenar?`);
         menu = menu.toLowerCase();
     }
 
@@ -81,51 +83,64 @@
     //Devuelve una cadena con los platos y precios para mostrar 
     let platos = function(listaAlimentos){
             return _.reduce(listaAlimentos, function(content, plato) {
-                return `\n${plato.food} -> ${(plato.price * suplementoCena).toFixed(2)}€`.concat(content); 
+                return `\n${_.capitalize(plato.food)} -> ${(plato.price * suplementoCena).toFixed(2)}€`.concat(content); 
             },'\n');
     }
     
     //Va añadiendo el precio a la cuenta y también lo devuelve para informar.
-    let precios = function(vuelco, respuesta){
-        let plato = vuelco.find(item => item.food === respuesta);
-        if (plato) {
-            seleccion.push (plato.price * suplementoCena);
-            return (plato.price * suplementoCena);
-        } else {
-            respuesta = prompt(`Perdone, le repito las opciones.\n` + platos(vuelco) + '\nElija una:');
-             return precios(vuelco, respuesta);
+    let precios = function(vuelco, plato){
+        seleccion.push(plato.price * suplementoCena);
+        seleccionAlimentos.push({ food: plato.food, price: (plato.price).toFixed(2) });
+        return plato.price * suplementoCena;
+    }
+
+    //Formatea el estilo de algunas respuestas
+    function formateaRespuesta(aux){
+        aux = aux.toLowerCase();
+        if(aux==='cafe'){
+            aux='café';
         }
+        return aux;
     }
 
     //Solicita la cadena con los platos y precios y la muestra para su selección.
     //En algunos alimentos ofrece más cantidad.
     //Realiza un comentario junto con la muestra de la información del precio.
     let seleccionarPlato = function(vuelco, frase) {
-        let respuesta = prompt(`${frase}\n` + platos(vuelco) + '\nElija una opción:');
-        let confirmacionPrecio = precios(vuelco, respuesta);
-        
+        respuesta = prompt(`${frase}\n` + platos(vuelco) + '\nElija una opción:');
+        respuesta = formateaRespuesta(respuesta);
+
+        let plato;
+        while (!plato) {
+            plato = vuelco.find(item => item.food === respuesta);
+            if (!plato) {
+                respuesta = prompt(`Perdone, no le he entendido bien con lo de "${respuesta}". \nLe repito las opciones.\n` + platos(vuelco) + '\nElija una:');
+                respuesta = formateaRespuesta(respuesta);
+            }    
+        }
+
+        let confirmacionPrecio = precios(vuelco, plato);
+
         if (respuesta === 'cacao' || respuesta === 'café' || respuesta === 'chocolate' ||
             respuesta === 'lentejas' || respuesta === 'alubias' || respuesta === 'garbanzos'){
             let suplemento = prompt(`¿Quiere un extra de ${respuesta}? (s/n)`);
             suplemento = suplemento.toLowerCase();
-
+            
             while(suplemento !== 's' && suplemento !== 'n'){
-                suplemento = prompt('No le he entendido bien.');
+                suplemento = prompt(`Perdone, no le he entendido bien con lo de "${suplemento}".\nRepita su respuesta.`);
                 suplemento = suplemento.toLowerCase();
             }
 
             if(suplemento === 's'){
-                confirmacionPrecio = confirmacionPrecio + 1;
-                seleccion.push(1);
+                confirmacionPrecio = confirmacionPrecio + (1*suplementoCena);
+                seleccion.push(1*suplementoCena);
+                seleccionAlimentos.push({food: `Extra de ${respuesta}`, price: (1.00).toFixed(2)});
             }
         }
 
         let index = _.random(0, comentarios.length-1);
         alert(`${comentarios[index]}\n\nSu precio es de ${confirmacionPrecio.toFixed(2)}€`)
     };
-
-
-    //let extra = prompt(`${frase}\n` + platos(vuelco) + '\nElija una opción:');
 
 
     //Main
@@ -137,6 +152,7 @@
         return total + dato ;
     },0)
 
-    alert(`El total de su cuenta es ${sum.toFixed(2)}€`)
+    alert(`Su cuenta es la siguiente:\n ${platos(_.reverse(seleccionAlimentos))}\nTotal: ${sum.toFixed(2)}€\nGracias por venir al Bottega Restaurant!`);
+
 </script>
 </html>
